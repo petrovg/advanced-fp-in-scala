@@ -174,7 +174,18 @@ object exercise5 {
   * Implement compose, curry, uncurry
   */
 object exercise6 {
-  def compose[A, B, C](f: A => B, g: B => C): A => C = ???
-  def curry[A, B, C](f: (A, B) => C): A => B => C = ???
+  def compose[A, B, C](f: A => B, g: B => C): A => C = 
+    (a: A) => g(f(a))
+
+
+
+  def curry[A, B, C](f: (A, B) => C): A => B => C =
+    (a: A) => (b: B) => f(a, b)
+
+
+
+
+
+
   def uncurry[A, B, C](f:  A => B => C): (A, B) => C = ???
 }

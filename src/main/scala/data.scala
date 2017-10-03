@@ -11,6 +11,87 @@ object exercise1 {
   // 2. A JSON document
 }
 
+
+object game {
+
+  case class Profile(name: String, description: String)
+
+  case class Location(x: Int, y: Int)
+  object Locaton {
+    def apply(x: Int, y: Int): Option[Location] = ???
+  }
+
+  case class Character(character: Character, location: Location)
+
+  sealed trait Item
+  case class Chest(size: Int) extends Item
+
+  case class Cell(description: String, items: List[Item], characters: List[Character])
+
+  case class Player(name: String)
+
+  case class GameMap(rooms: Array[Array[Cell]], player: Player) {
+    def location(character: Character): Option[Location] = ???
+  }
+
+  sealed trait Action
+
+  sealed trait GameState
+  case class InProgress(map: GameMap) extends GameState
+  case class Complete() extends GameState
+  case class Paused() extends GameState
+
+  def update(action: Action, old: GameState): GameState = ???
+
+}
+
+
+// trait Algorithm[Stack[_]] {   // Stack : * => *
+//   def map(f: Int => Int): List[Int]
+//   def foo[A[_], B[_, _, _, _]]() = ??? // A: * => *, B: [* , *, *, *] => *
+// }
+
+trait Algorithm[Stack[_]] {
+  def run(params: Int, start: Stack[_]): Int = ???
+}
+// Algorithm : (* => *) => *
+
+object algae {
+  val myAlg: Algorithm[List] = new Algorithm[List]{}
+}
+
+
+trait Module[Algorithm[_[_]]] {}
+// Module : ((* => *) => *) => *
+
+// [_[_]]
+// List[A]
+// * => *
+
+// [_[_]]                   ====  * => *
+// Algotithm[_[_]]          ====  (* => *) => *
+// Module[Algorithm[_[_]]]  ====  ( (* => *) => * ) => *
+
+
+// scala> :kind lambdaconf.data.Module
+// lambdaconf.data.Module's kind is Y[X[F[A]]]
+
+// scala> :kind lambdaconf.data.ModuleB
+// lambdaconf.data.ModuleB's kind is Y[X[F[A]]]
+
+trait ModuleB[A[B[C]]] {}
+
+
+trait Foo[T[_[_], _]] 
+trait Goo[T[A[B], C]]
+
+// T takes two type parameters. The first is a type constructor (* => *), the second is of kind *
+// Foo : [ * => *, * ] => *
+
+
+
+
+
 object exercise2 {
   sealed trait Boolean {
     // ???

@@ -25,7 +25,13 @@ object exercise1 {
   case object Neutral extends Attitude
   case object Dislike extends Attitude
 
-  // preference(Eggs)
+  def preference(v: Groceries): Attitude = v match {
+    case Vegetables => Like
+    case Fruits => Love
+    case Meat => Like
+    case Dairy => Like
+    case Eggs => Like
+  }
 }
 
 object exercise2 {

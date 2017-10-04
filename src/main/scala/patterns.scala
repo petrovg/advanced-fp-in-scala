@@ -4,6 +4,111 @@ import matryoshka._
 import monocle._
 import scalaz._, Scalaz._, concurrent.Task
 
+
+
+object maybe {
+  sealed trait Maybe[+A] { self =>       
+    def map[B](f: A => B) = self match {
+      case Just(a) => Just(f(a))
+      case Empty => Empty
+    }
+
+    def flatMap[B](f: A => Maybe[B]) = self match {
+      case Just(a) => f(a)
+      case Empty => Empty
+    }
+  }
+
+  case class Just[+A](value: A) extends Maybe[A]
+  case object Empty extends Maybe[Nothing]
+
+  object Maybe {
+    def just[A](a: A) = Just(a)
+  }
+
+
+  def getPort: Maybe[Int] = ???
+
+  def getUrl: Maybe[String] = ???
+
+  getUrl.flatMap( u => getPort.map( p => s">>> contacting http://$u:$p") )
+
+}
+
+
+object disjunction {
+  
+  sealed trait Either[A, B] { self => 
+    def map[C](f: B => C): Either[A, C] = self match {
+      case Left(a) => Left(a)
+      case Right(b) => Right(f(b))
+    }
+
+    def flatMap[C](f: B => Either[A, C]): Either[A, C] = self match {
+      case Left(a) => Left(a)
+      case Right(b) => f(b)
+    }
+
+  }
+
+
+  case class Left[A, B](a: A) extends Either[A, B]
+  case class Right[A, B](b: B) extends Either[A, B]
+
+  def Either {
+    def success[A, B](b: B) = Right[A, B](b)
+  }
+
+
+
+  object Config {
+    def getString(key: String): Either[String, String] = if (key == "url") Right("yahoo.com") else Left("Key not found")
+    def getInt(key: String): Either[String, Int] = Right(8080)
+  }
+
+  val c = for {
+    u <- Config.getString("urool")
+    p <- Config.getInt("port")
+  } yield u + ":" + p
+
+
+}
+
+
+object validation {
+  sealed trait Validation[A, B] { self => 
+    final def map[C](f: B => C): Validation[A, C] = self match {
+      case Failure(es) => Failure(es)
+      case Success(b) => Success(f(b))
+    }
+
+    final def zip[C](that: Validation[A, C]): Validation[A, (B, C)] = (self, that) match {
+      case (Failure((a1, a1s)), Failure((a2, a2s))) => 
+        Failure((a1, a1s ::: (a2 :: a2s)))
+      case (Success(b), Failure((a2, a2s))) =>
+        Failure((a2, a2s))
+      case (Failure((a1, a1s)), Success(b)) => 
+        Failure((a1, a1s))
+      case (Success(b), Success(c)) => 
+        Success((b, c))
+    }
+  }
+
+  case class Failure[A, B](errors: (A, List[A])) extends Validation[A, B]
+  case class Success[A, B](success: B) extends Validation[A, B]
+
+
+  object Config {
+    def getString(key: String): Validation[String, String] = if (key == "url") Success("yahoo.com") else Failure((s"Key $key not found", Nil))
+    def getInt(key: String): Validation[String, Int] = if (key == "port") Success(8080) else Failure((s"Key $key not found", Nil))
+  }
+
+  val c = Config.getString("urkl").zip(Config.getInt("pokrt"))
+  
+}
+
+
+
 object exercise1 {
 
   /** we have some potential errors*/

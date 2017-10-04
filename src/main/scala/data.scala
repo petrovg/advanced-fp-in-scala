@@ -260,15 +260,46 @@ object exercise5 {
   def decodePerson(v: JSON): Option[Person] = ???
 }
 
-object exercise6 {
-  sealed trait JSON[A]
-  // ???
 
-  val TraverseJson: Traverse[JSON] = ???
+object exercise6 {
+
+  object example1 {
+    sealed trait Json {
+      def fold[Z](z: Z)(
+        json: PartialFunction[Json, Z]
+      ): Z = ???
+    }
+
+
+    case class Num(value: BigDecimal) extends Json
+    case class Str(value: String) extends Json
+    case object Null extends Json
+    case class Arr(value: Array[Json]) extends Json
+    case class Obj(value: Map[String, Json]) extends Json
+
+  }
+
+
+  sealed trait Json[A]
+  case class Num[A](value: BigDecimal) extends Json[A]
+  case class Str[A](value: String) extends Json[A]
+  case class Null[A]() extends Json[A]
+  case class Arr[A](value: Array[A]) extends Json[A]
+  case class Obj[A](value: Map[String, A]) extends Json[A]
+
+
+  final case class Fix[F[_]](unfix: F[Fix[F]])
+
+  val TraverseJson: Traverse[Json] = ???
+
 }
 
 object exercise7 {
-  import exercise6._
+  sealed trait JSON[A]
+  // ???
+
+
+  val TraverseJson: Traverse[JSON] = ???
 
   type RecursiveJSON = Fix[JSON]
 

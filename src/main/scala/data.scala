@@ -27,7 +27,8 @@ object game {
         set = (b: B) => (s: S) => self.set(that.set(b)(self.get(s)))(s): S,
         get = (s: S) => (that.get(self.get(s)) : B)
       )
-    def modify(f: A => A): S => S = ???
+    def modify(f: A => A): S => S = 
+      (s: S) => set(f(get(s)))(s)
   }
   
 

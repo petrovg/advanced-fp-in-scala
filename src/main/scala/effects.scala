@@ -104,6 +104,27 @@ object fine {
 }
 
 
+object optiont {
+  case class OptionT[F[_], A](run: F[Option[A]]) { self => 
+    def map[B](f: A => B)(implicit F: Functor[F]): OptionT[F, B] =
+      OptionT[F, B](self.run.map(optionA => optionA.map(f)))
+
+    def flatMap[B](f: A => OptionT[F, B])(implicit F: Monad[F]): OptionT[F, B] = 
+      OptionT[F, B](self.run.flatMap(optionA => 
+        optionA match {
+          case Some(a) => f(a).run
+          case None => F.point(Option.empty[B])
+        }
+      ))
+  }
+  object OptionT {
+    def point[F[_], A](a: => A)(implicit F: Applicative[F]): OptionT[F, A] = 
+      OptionT[F, A](F.point(Some(a)))
+  }
+}
+
+
+
 object exercise2 {
   import exercise1._
 

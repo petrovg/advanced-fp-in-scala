@@ -104,7 +104,8 @@ object validation {
   }
 
   val c = Config.getString("urkl").zip(Config.getInt("pokrt"))
-  
+
+
 }
 
 
@@ -124,13 +125,18 @@ object exercise1 {
   val iWillGiveYouInt: Long => Error \/ Int =
     (l: Long) => if(l < 0) l.toInt.right else MiningBitcoinNoTimeToTalk.left
 
-    def calculation(d: Double, l: Long): Error \/ (String, Int) = for {
+  def calculation(d: Double, l: Long): Error \/ (String, Int) = for {
     s <- iWillGiveYouString(d)
     i <- iWillGiveYouInt(l)
   } yield (s, i)
 
   /** If I'm not interested with an error - I want to ignore it */
-  val result: Option[(String, Int)] = ??? // calculate(20.0, -3)
+  //val result: Option[(String, Int)] = calculation(20.0, -3).toOption
+
+  val result: Option[(String, Int)] = calculation(2.0, -3) match {
+    case -\/(e) => None
+    case \/-(v) => Some(v)
+  }
 
   /** What is a potential issue with the returned type Error \/ (String, Int) */
   /** Run all those function calls and reason about the result, what can we do about it? */
@@ -213,6 +219,32 @@ object exercise5 {
   val solution: Task[List[User]] = ???
 
 }
+
+
+object functor {
+
+  sealed trait Tree[A]
+  case class Empty[A]() extends Tree[A]
+  case class Leaf[A](value: A) extends Tree[A]
+  case class Branch[A](left: Tree[A], right: Tree[A]) extends Tree[A]
+
+  implicit val TreeFunctor = new Functor[Tree] {
+    def map[A, B](fa: Tree[A])(f: A => B): Tree[B] = fa match {
+      case Empty() => Empty()
+      case Leaf(v) => Leaf(f(v))
+      case Branch(l, r) => Branch(map(l)(f), map(r)(f))
+    }
+  }
+
+
+  implicit def FunctionFunctor[K] = new Functor[Function[K, ?]] {
+    def map[A, B](fa: Function[K, A])(f: A => B): K => B = k => f(fa(k))
+  }
+  
+
+}
+
+
 
 object exercise6 {
 

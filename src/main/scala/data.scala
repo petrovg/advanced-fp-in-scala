@@ -14,6 +14,23 @@ object exercise1 {
 
 object game {
 
+  type Optic[S, T, A, B]
+  // Before:  Substructure A inside a superstructure S
+  // After:  Substructure B inside a superstructure T
+  // Monomorphic cases: S = T, A = B
+  case class Lens[S, A](
+    set: A => S => S,
+    get: S => A
+  ) { self => 
+    def >>> [B](that: Lens[A, B]): Lens[S, B] = 
+      Lens(
+        set = (b: B) => (s: S) => self.set(that.set(b)(self.get(s)))(s): S,
+        get = (s: S) => (that.get(self.get(s)) : B)
+      )
+    def modify(f: A => A): S => S = ???
+  }
+  
+
   case class Profile(name: String, description: String)
 
   case class Location(x: Int, y: Int)
@@ -21,9 +38,18 @@ object game {
     def apply(x: Int, y: Int): Option[Location] = ???
   }
 
-  case class Stats(hitPoints: Int)
+  case class Stats(hitPoints: Int, strength: Int, stamina: Int) 
+
+  object Stats {
+    val hitPoints: Lens[Stats, Int] = Lens[Stats, Int](set = i => s => s.copy(hitPoints = i), get = _.hitPoints)
+  }
 
   case class Character(stats: Stats, location: Location)
+
+  object Character {
+    val stats: Lens[Character, Stats] = 
+      Lens[Character, Stats](set = s => c => c.copy(stats = s), get = _.stats)
+  }
 
   sealed trait Item
   case class Chest(size: Int) extends Item
@@ -32,22 +58,33 @@ object game {
 
   case class Player(name: String, character: Character)
 
-  case class GameMap(rooms: Array[Array[Cell]]) {
+  object Player {
+    val character: Lens[Player, Character] = 
+      Lens[Player, Character](set = c => p => p.copy(character = c), get = _.character)
+  }
+
+  case class GameMap(rooms: Array[Array[Cell]], player: Player) {
     def location(character: Character): Option[Location] = ???
+  }
+
+  object GameMap {
+    val player: Lens[GameMap, Player] = 
+      Lens[GameMap, Player](set = v => p => p.copy(player = v), get = _.player)
   }
 
   sealed trait Action
 
   sealed trait GameState
-  case class InProgress(map: GameMap, player: Player) extends GameState
+  case class InProgress(map: GameMap) extends GameState
   case class Complete() extends GameState
   case class Paused() extends GameState
 
   def update(action: Action, old: GameState): GameState = ???
 
   def damagePlayer(damage: Int)(state: GameState): GameState = state match {
-    case s @ InProgress(map, player) => s.copy(player = s.player.copy(character = player.character.copy(
-      stats = player.character.stats.copy(hitPoints = player.character.stats.hitPoints - damage))))
+    case s @ InProgress(map) => 
+      val lens: Lens[GameMap, Int] = (GameMap.player >>> Player.character >>> Character.stats >>> Stats.hitPoints)
+      InProgress( lens.modify(_ - damage)(map) )
 
     case Complete() => Complete()
   }

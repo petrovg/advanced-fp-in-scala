@@ -5,6 +5,7 @@ import monocle._
 import scalaz._
 
 import Scalaz._
+import scala.concurrent.Future
 
 object effects {
 
@@ -121,6 +122,8 @@ object optiont {
     def point[F[_], A](a: => A)(implicit F: Applicative[F]): OptionT[F, A] = 
       OptionT[F, A](F.point(Some(a)))
   }
+
+  type FutureObtion[A] = OptionT[Future, A]
 }
 
 

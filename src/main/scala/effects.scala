@@ -123,7 +123,7 @@ object optiont {
       OptionT[F, A](F.point(Some(a)))
   }
 
-  type FutureObtion[A] = OptionT[Future, A]
+  type FutureOption[A] = OptionT[Future, A]
 }
 
 

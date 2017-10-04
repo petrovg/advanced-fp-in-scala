@@ -21,27 +21,36 @@ object game {
     def apply(x: Int, y: Int): Option[Location] = ???
   }
 
-  case class Character(character: Character, location: Location)
+  case class Stats(hitPoints: Int)
+
+  case class Character(stats: Stats, location: Location)
 
   sealed trait Item
   case class Chest(size: Int) extends Item
 
   case class Cell(description: String, items: List[Item], characters: List[Character])
 
-  case class Player(name: String)
+  case class Player(name: String, character: Character)
 
-  case class GameMap(rooms: Array[Array[Cell]], player: Player) {
+  case class GameMap(rooms: Array[Array[Cell]]) {
     def location(character: Character): Option[Location] = ???
   }
 
   sealed trait Action
 
   sealed trait GameState
-  case class InProgress(map: GameMap) extends GameState
+  case class InProgress(map: GameMap, player: Player) extends GameState
   case class Complete() extends GameState
   case class Paused() extends GameState
 
   def update(action: Action, old: GameState): GameState = ???
+
+  def damagePlayer(damage: Int)(state: GameState): GameState = state match {
+    case s @ InProgress(map, player) => s.copy(player = s.player.copy(character = player.character.copy(
+      stats = player.character.stats.copy(hitPoints = player.character.stats.hitPoints - damage))))
+
+    case Complete() => Complete()
+  }
 
 }
 

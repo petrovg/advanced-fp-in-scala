@@ -6,6 +6,30 @@ import scalaz._
 
 import Scalaz._
 
+object effects {
+
+  def putStrLn(line: String): Unit = ???
+  def getStrLn(): String = ???
+
+  sealed trait Console[A]
+  case class PutStrLn(line: String) extends Console[Unit]
+  case class GetStrLn() extends Console[String]
+
+  case class Sequence[A0](first: Console[A0], f: A0 => Console[A]) extends Console[A] // bind
+  case class Pure[A](value: A) extends Console[A] // point
+  case class Map[A0, A](program: Console[A0], f: A0 => A) extends Console[A] //map
+  
+
+  val console: Console[Unit] = 
+    for {
+      _ <- PutStrLn("What is your name")
+      n <- GetStrLn()
+      _ <- PutStrLn("Hello, " + n)
+    } yield ()
+    
+}
+
+
 object exercise1 {
   final case class IO[A](/* ??? */)
 

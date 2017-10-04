@@ -236,13 +236,117 @@ object functor {
     }
   }
 
+  // implicit class TreeFunctorSyntax[A](val t: Tree[A]) extends AnyVal { 
+  //   def map[B](f: A => B)(implicit fun: Functor[Tree[A]]) = fa.map(fun)(fa)
+  // }
 
+  // covariant endofunctor for Function
   implicit def FunctionFunctor[K] = new Functor[Function[K, ?]] {
-    def map[A, B](fa: Function[K, A])(f: A => B): K => B = k => f(fa(k))
+    def map[A, B](fa: Function[K, A])(f: A => B): K => B = f.compose(fa)
   }
-  
+
+
+  implicit def ContravariantFunctionFunctor[K] = new Contravariant[? => K] {
+    def contramap[A, B](r: A => K)(f: B => A): B => K = 
+      b => r(f(b))
+  }
+
+
+  trait NaturalTransformation[F[_], G[_]] {
+    def apply[A](fa: F[A]): G[A]
+  }
+
+  type ~> [F[_], G[_]] = NaturalTransformation[F, G]
+
+  val OptionToList = new NaturalTransformation[Option, List] {
+    def apply[A](fa: Option[A]): List[A] = 
+      fa match {
+        case Some(v) => List(v)
+        case None => Nil
+      }
+  }
+
+  trait HFunctor[T[_[_]]] {
+    def map[F[_], G[_]](t: T[F])(f: F ~> G): T[G]
+  }
+
+
+  case class Composite[F[_], G[_], A](run: F[G[A]])
+
 
 }
+
+
+object apply {
+  trait Apply[F[_]] extends Functor[F] {
+    def ap[A, B](fa: F[A])(fab: F[A => B]): F[B]
+  }
+
+  // implicit val OptionApply = new Apply[Option] {
+  //   def ap[A, B](fa: => Option[A])(f: => Option[A => B]): Option[B] = 
+  //     (fa, f) match {
+  //       case (Some(a), Some(f)) => Some(f(a))
+  //       case (None, Some(f)) => None
+  //       case (Some(a), None) => None
+  //       case (None, None) => None
+  //     }
+
+  //   def zip[A, B](l: Option[A], r: Option[B]): Option[(A, B)] = 
+  //     ap(l)(r.map(b => (a: A) => (a, b)))
+
+  //   def map[A, B](fa: Option[A])(f: A => B): Option[B] = fa.map(f)
+  // }
+
+  val o1: Option[Int] = Some(1)
+  val o2: Option[Int] = Some(2)
+  (o1 |@| o1)(_ + _)
+
+
+
+}
+
+
+object bind {
+
+  // trait Bind[F[_]] extends Apply[F] {
+  //   def map  [A, B] (fa: F[A])(f:   A =>   B  ): F[B]
+  //   def ap   [A, B] (fa: F[A])(f: F[A =>   B] ): F[B]
+  //   def bind [A, B] (fa: F[A])(f:   A => F[B] ): F[B]
+  // }
+
+
+  implicit val BindOption = new Bind[Option] {
+    def bind[A, B](fa: Option[A])(f: A => Option[B]): Option[B] = fa match {
+      case Some(a) => f(a)
+      case None => None
+    }
+    def map[A, B](fa: Option[A])(f: A => B): Option[B] = fa match {
+      case Some(a) => Some(f(a))
+      case None => None
+    }
+    def ap[A, B](fa: Option[A])(fo: Option[A => B]): Option[B] = 
+      //bind(fo)(f => bind(fa)(a => Some(f(a))))
+      bind(fo)(f => map(fa)(a => f(a)))
+
+  }
+
+  implicit val BindList = new Bind[List] {
+    def bind[A, B](fa: List[A])(f: A => List[B]): List[B] = fa match {
+      case Nil => Nil
+      case a :: as => f(a) ++ bind(as)(f)
+    }
+    def map[A, B](fa: List[A])(f: A => B): List[B] = fa match {
+      case Nil => Nil
+      case a :: as => f(a) :: map(as)(f)
+    }
+  }
+
+
+}
+
+
+
+
 
 
 

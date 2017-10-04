@@ -30,6 +30,18 @@ object game {
     def modify(f: A => A): S => S = 
       (s: S) => set(f(get(s)))(s)
   }
+
+  case class Prism[S, A](
+    set: A => S,
+    get: S => Option[A]
+  ) { self => 
+    def >>> [B](that: Prism[A, B]): Prism[S, B] = 
+      Prism(
+        set = (b: B) => (self.set(that.set(b)) : S),
+        //get = (s: S) => (that.get(self.get(s)) : Option[B])
+        get = (s: S) => (self.get(s).flatMap(that.get) : Option[B])
+      )
+  }
   
 
   case class Profile(name: String, description: String)
@@ -38,6 +50,12 @@ object game {
   object Locaton {
     def apply(x: Int, y: Int): Option[Location] = ???
   }
+
+  sealed trait Alignment
+  case object Positive extends Alignment
+  case object Negative extends Alignment
+  case object Neutral extends Alignment
+
 
   case class Stats(hitPoints: Int, strength: Int, stamina: Int) 
 

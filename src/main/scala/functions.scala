@@ -49,6 +49,7 @@ object exercise2 {
   /** And apply some discounts from time to time */
   val discount: Item => Double = {
     case Apple => 0.1
+    case Orange => 0
   }
 
   /** 
@@ -57,9 +58,9 @@ object exercise2 {
     * 
     * Call the function for both Apples and Oranges. Is everything in order? How can you fix it?
     */
-  val finalPrice: Item => Double = ???
-  finalPrice(Apple)
-  finalPrice(Orange)
+  val finalPrice: Item => Double = i => price(i) * (1 - discount(i))
+  //finalPrice(Apple)
+  //finalPrice(Orange)
 }
 
 /**
@@ -78,7 +79,7 @@ object exercise3 {
     case _    => Eggs
   }
 
-  val prizeForComment: String => Groceries = ???
+  val prizeForComment: String => Groceries = c => prize(rateComment(c))
 }
 
 /**
@@ -109,7 +110,10 @@ object exercise4 {
   /** Schrodinger is a crazy fellow. He closed his cat in a box!
     * Now Schrodinger does not know whether the cat is dead or alive but he seems happy about it.
     */
-  class SchrodingerBox(private val cat: Cat)
+  class SchrodingerBox(private val cat: Cat) {
+    def --:(fn: Cat => Cat): Cat = fn(cat)
+    def doToCat(fn: Cat => Cat): Cat = fn(cat)
+  }
   object SchrodingerBox {
     def apply(cat: Cat): SchrodingerBox =
       if(cat.happiness <= 3)
@@ -126,6 +130,17 @@ object exercise4 {
     * 2. Try running running your function with `pet` and `hiss` functions.
     * 3. What about feed function? Can we still feed a cat within a SchrodingerBox?
     */
+
+    val tom = Cat(10, true)
+    val box = SchrodingerBox(tom)
+    pet --: box
+    //feed(_, Milk) --: box   <<-- Not working :(
+    (feed(_: Cat, Milk)) --: box
+    hiss --: box
+
+    box.doToCat(feed(_, Meat))
+
+
 }
 
 object exercise5 {

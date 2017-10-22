@@ -180,9 +180,17 @@ object exercise5 {
     * 3. return a function that will take an Item as parameter and return a final price for
     *    that item as a result
     */
-  val createCheckout: (Item => Double) => (Item => Double) => (Item => Double) = ???
+  val createCheckout: (Item => Double) => (Item => Double) => (Item => Double) = 
+    price => discount => 
+      item => price(item) * (1 - discount(item))
 
   val checkout: Item => Double = createCheckout(priceLondon)(mondayDiscount)
+
+  // Test it
+  import lambdaconf.functions.exercise5._
+  val co = createCheckout(priceLondon)(holidayDiscount)
+  co(Apple)
+  co(Orange)
 }
 
 /**
@@ -192,15 +200,19 @@ object exercise6 {
   def compose[A, B, C](f: A => B, g: B => C): A => C = 
     (a: A) => g(f(a))
 
+  compose((_: Int).toDouble, (_: Double) / 3)
 
 
   def curry[A, B, C](f: (A, B) => C): A => B => C =
     (a: A) => (b: B) => f(a, b)
 
+  val f7 = curry( (a: List[String], b: Char) => a.mkString(b.toString)  )
+  f7(List("qwe", "e", "iiii"))( '*')
 
 
+  def uncurry[A, B, C](f:  A => B => C): (A, B) => C = (a, b) => f(a)(b)
+  
+  val f8 = uncurry(f7)
+  f8(List("qwe", "e", "iiii"), '*')
 
-
-
-  def uncurry[A, B, C](f:  A => B => C): (A, B) => C = ???
 }

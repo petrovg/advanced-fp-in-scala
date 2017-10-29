@@ -49,6 +49,8 @@ object exercise1 {
   implicit class OrdSyntax[A](val l: A) extends AnyVal {
     def < (r: A)(implicit o: Ord[A]): Boolean = o.compare(l, r) == LT
     def <= (r: A)(implicit o: Ord[A]): Boolean = o.compare(l, r) != GT
+    def > (r: A)(implicit o: Ord[A]): Boolean = o.compare(l, r) == GT
+    def >= (r: A)(implicit o: Ord[A]): Boolean = o.compare(l, r) != LT
     def == (r: A)(implicit o: Ord[A]): Boolean = o.compare(l, r) == Equal
   }
 
@@ -62,15 +64,16 @@ object exercise1 {
 
   }
 
-  case class ByAge(p: Person)
+  case class ByAge(p: Person) extends AnyVal
   object ByAge {
     implicit val ordByAge = new Ord[ByAge] {
-      def compare(a: ByAge, b: ByAge): Ordering = ???
+      def compare(a: ByAge, b: ByAge): Ordering = 
+        if (a.p.age == b.p.age) Equal else if (a.p.age < b.p.age) LT else GT
     }
   }
 
-  val ann = Person("Ann", 30)
-  val bob = Person("Bob", 35)
+  val ann = Person("Anne", 36)
+  val bob = Person("Bob", 31)
 
   sort(List(ann, bob))
   sort(List(bob, ann))

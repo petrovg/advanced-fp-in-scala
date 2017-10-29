@@ -17,6 +17,9 @@ import Scalaz._
   */
 object exercise1 {
   sealed trait Figure
+  object Rectangle(a: Double, b: Double) extends Figure
+  object Trapezoid(a: Double, b: Double, h: Double) extends Figure
+  object Circle(r: Double) extends Figure
 }
 
 /**

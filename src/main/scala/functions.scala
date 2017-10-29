@@ -193,8 +193,7 @@ object exercise5 {
   co(Orange)
 }
 
-/**
-  * Implement compose, curry, uncurry
+/**  * Implement compose, curry, uncurry
   */
 object exercise6 {
   def compose[A, B, C](f: A => B, g: B => C): A => C = 
@@ -213,6 +212,5 @@ object exercise6 {
   def uncurry[A, B, C](f:  A => B => C): (A, B) => C = (a, b) => f(a)(b)
   
   val f8 = uncurry(f7)
-  f8(List("qwe", "e", "iiii"), '*')
 
 }

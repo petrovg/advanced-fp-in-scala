@@ -33,9 +33,9 @@ object exercise1 {
 
     implicit val OrdInt = new Ord[Int] { self => 
       def compare(a: Int, b: Int) = 
-        if (a == a) Equal
+        if (a == b) Equal
         else if (a < b) LT
-        else GT
+        else GT 
     }
 
     implicit def OrdList[A](implicit ord: Ord[A]) = new Ord[List[A]] {
@@ -45,7 +45,7 @@ object exercise1 {
 
 
   // Important!!! Putting the implicit on the method and not the class is better,
-  // because a) perfoemance, and b) much better error message
+  // because a) performance, and b) much better error message
   implicit class OrdSyntax[A](val l: A) extends AnyVal {
     def < (r: A)(implicit o: Ord[A]): Boolean = o.compare(l, r) == LT
     def <= (r: A)(implicit o: Ord[A]): Boolean = o.compare(l, r) != GT

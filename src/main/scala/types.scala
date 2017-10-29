@@ -17,9 +17,9 @@ import Scalaz._
   */
 object exercise1 {
   sealed trait Figure
-  object Rectangle(a: Double, b: Double) extends Figure
-  object Trapezoid(a: Double, b: Double, h: Double) extends Figure
-  object Circle(r: Double) extends Figure
+  case class Rectangle(a: Double, b: Double) extends Figure
+  case class Trapezoid(a: Double, b: Double, h: Double) extends Figure
+  case class Circle(r: Double) extends Figure
 }
 
 /**
@@ -27,15 +27,15 @@ object exercise1 {
   */
 object exercise2 {
   /** Maybe is of kind *. Change it to be * -> * so that it can hold values of any type */
-  sealed trait Maybe
-  case class Just(value: String)
-  case object Empty
+  sealed trait Maybe[+A]
+  case class Just[A](value: A) extends Maybe[A]
+  case object Empty extends Maybe[Nothing]
 
   val gotIt = Just("hello")
   val nah = Empty
-  // val gotNum = Just(10)
-  // case class User(name: String)
-  // val maybeUser = Just(User("Swift"))
+  val gotNum = Just(10)
+  case class User(name: String)
+  val maybeUser = Just(User("Swift"))
 }
 
 /**
@@ -74,9 +74,57 @@ object Existential {
     // Which means we can't do much, really. 
     // The type of the list is existentially hidden
     // We must code without knowing it.
-    ???
+    l.size
     // eg. l.length
   }
+
+  def goo[A](l: List[A]): A = {
+    l.last
+  }
+
+  sealed trait Error {
+    val trace: Throwable
+    val extraContext: Option[Any] = None
+    override def toString: String = {
+      val stringy = new java.io.StringWriter
+      val printer = new java.io.PrintWriter(stringy)
+      printer.println(extraContext.map(_.toString).getOrElse("No extra context") + ":")
+      trace.printStackTrace(printer)
+      stringy.toString
+    }
+  }
+  case class DoesNotWorkForEmptyList() extends Error {
+    override val trace = new Exception
+  }
+  case class NetworkConnectionFailed(cause: Exception, override val extraContext: Option[Any]) extends Error {
+    override val trace = new Exception(extraContext, cause)
+  }
+
+  import lambdaconf.typeclasses.exercise1._
+  def hoo[A : Ord](l: List[A]): Either[Error, A] = {
+    val ordy = implicitly[Ord[A]]
+    def min(c: A)(l: List[A]): A = l match {
+      case Nil => c
+      case x :: xs => 
+        if ( ordy.compare(x, c) == LT ) 
+          min(x)(xs) 
+        else
+          min(c)(xs)
+    }
+    l.headOption.map(x => Right(min(x)(l.tail)))
+      .getOrElse(Left(DoesNotWorkForEmptyList()))
+  }
+
+  def myNetworkCall: String = throw new java.io.IOException("Bad socket")
+
+  def transform(s: String): String = s.reverse
+
+  def getFromInterwebs(url: String): Either[Error, String] = {
+    try { Right(transform(myNetworkCall)) }
+    catch {
+      case e: Exception => Left(NetworkConnectionFailed(e, Some("Error connecting to " + url)))
+    }
+  }  
 
 // TODO - look at implementing this.
 /*
